@@ -16,6 +16,10 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+var (
+	ingressesCollection map[string]*extensionsv1beta1.Ingress
+)
+
 func main() {
 	go startMetricsServer()
 
@@ -62,14 +66,17 @@ func main() {
 
 		if event.Type == watch.Added {
 			log.Printf("Added %s/%s", ingress.Namespace, ingress.Name)
+			ingressesCollection[ingress.Name] = ingress
 		} else if event.Type == watch.Modified {
 			log.Printf("Modified %s/%s", ingress.Namespace, ingress.Name)
+			ingressesCollection[ingress.Name] = ingress
 		} else if event.Type == watch.Deleted {
 			log.Printf("Deleted %s/%s", ingress.Namespace, ingress.Name)
+			delete(ingressesCollection, ingress.Name)
 		} else if event.Type == watch.Error {
 			log.Println("Error: event.type == watch.Error", event)
 		} else {
-			log.Println("Error: unexpected type", event)
+			log.Println("Error: unexpected event.type", event)
 		}
 	}
 }
