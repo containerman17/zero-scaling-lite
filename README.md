@@ -5,7 +5,7 @@ Simple, straightforward, lightweight. Works on metrics from Nginx Ingress. Depen
 ## How it works 
 
 ### Proxy component
-On request received, holds it, asks scaler for scaling up to 1 replica. 
+On request received, holds it, asks scaler for scaling up to 1 replica.  
 
 ### Scaler service
 
