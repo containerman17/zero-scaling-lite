@@ -17,6 +17,9 @@ package controllers
 
 import (
 	"context"
+	"time"
+
+	"strings"
 
 	"github.com/go-logr/logr"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
@@ -33,7 +36,7 @@ type ScalingBackInfoReconciler struct {
 }
 
 var (
-	ingressesCollection [0]string
+	ingressesCollection = make(map[string]*extensionsv1beta1.Ingress)
 )
 
 // +kubebuilder:rbac:groups=zero-scaling.controllers.dockerize.io,resources=scalebackinfoes,verbs=get;list;watch;create;update;patch;delete
@@ -49,16 +52,54 @@ func (r *ScalingBackInfoReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	ingress := &extensionsv1beta1.Ingress{}
 
 	if err := r.Get(ctx, req.NamespacedName, ingress); err != nil {
+		if err.Error() == "Ingress.extensions \""+req.Name+"\" not found" {
+			log.Info("404: Ingress do not exists, do nothing")
+			return ctrl.Result{}, nil
+		}
+		delete(ingressesCollection, ingress.Name)
 		log.Error(err, "unable to get Ingress ")
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("Got ingress")
+	log.V(1).Info("Got ingress", "zero-scaling/enabled", ingress.Annotations["zero-scaling/enabled"])
+
+	var zeroScalingEnabled = false
+	if val, ok := ingress.Annotations["zero-scaling/enabled"]; ok {
+		valLowerCase := strings.ToLower(val)
+		if valLowerCase == "false" || valLowerCase == "no" || valLowerCase == "disabled" {
+			zeroScalingEnabled = false
+		} else {
+			zeroScalingEnabled = true
+		}
+	}
+
+	if zeroScalingEnabled {
+		ingressesCollection[ingress.Name] = ingress
+	} else {
+		delete(ingressesCollection, ingress.Name)
+	}
+
+	log.V(1).Info("List", "ingressesCollection", ingressesCollection)
 
 	return ctrl.Result{}, nil
 }
 
+func checkDownLoop(r *ScalingBackInfoReconciler) {
+	log := r.Log
+	log.V(1).Info("List", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", len(ingressesCollection))
+}
+
+func startCheckDownLoop(r *ScalingBackInfoReconciler) {
+
+	timerCh := time.Tick(500 * time.Millisecond)
+
+	for range timerCh {
+		checkDownLoop(r)
+	}
+}
+
 func (r *ScalingBackInfoReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	go startCheckDownLoop(r)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&extensionsv1beta1.Ingress{}).
 		Complete(r)
