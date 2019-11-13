@@ -1,0 +1,7 @@
+version: "2"
+domain: controllers.dockerize.io
+repo: zeroscaling.controllers.dockerize.io
+resources:
+- group: zeroscaling
+  version: v1
+  kind: ScalingBackInfo

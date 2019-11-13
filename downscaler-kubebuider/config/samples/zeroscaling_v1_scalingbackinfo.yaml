@@ -1,0 +1,7 @@
+apiVersion: zeroscaling.controllers.dockerize.io/v1
+kind: ScalingBackInfo
+metadata:
+  name: scalingbackinfo-sample
+spec:
+  # Add fields here
+  foo: bar
