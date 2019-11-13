@@ -22,6 +22,7 @@ var (
 
 func main() {
 	go startMetricsServer()
+	ingressesCollection = make(map[string]*extensionsv1beta1.Ingress)
 
 	kubeconfig := filepath.Join(
 		os.Getenv("HOME"), ".kube", "config",
@@ -56,6 +57,7 @@ func main() {
 		log.Fatal("api.Ingresses().Watch error: ", err)
 	}
 	ch := watcher.ResultChan()
+
 	for event := range ch {
 		ingress, ok := event.Object.(*extensionsv1beta1.Ingress)
 		if !ok {
