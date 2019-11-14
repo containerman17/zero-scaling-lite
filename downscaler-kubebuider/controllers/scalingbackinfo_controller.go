@@ -84,11 +84,6 @@ func (r *ScalingBackInfoReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	return ctrl.Result{}, nil
 }
 
-func checkDownLoop(r *ScalingBackInfoReconciler) {
-	log := r.Log
-	log.V(1).Info("List", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", len(ingressesCollection))
-}
-
 func startCheckDownLoop(r *ScalingBackInfoReconciler) {
 
 	timerCh := time.Tick(500 * time.Millisecond)
