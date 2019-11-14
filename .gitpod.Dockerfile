@@ -1,7 +1,7 @@
 FROM gitpod/workspace-full
 
 USER root
-COPY --from=lachlanevenson/k8s-kubectl:v1.10.3 /usr/local/bin/kubectl /usr/local/bin/kubectl
+COPY --from=lachlanevenson/k8s-kubectl:v1.16.3 /usr/local/bin/kubectl /usr/local/bin/kubectl
 
 # Install custom tools, runtime, etc. using apt-get
 # For example, the command below would install "bastet" - a command line tetris clone:
