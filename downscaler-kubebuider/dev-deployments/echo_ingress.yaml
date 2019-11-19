@@ -4,6 +4,7 @@ metadata:
   name: echo-ingress-1
   annotations:  
     zero-scaling/enabled: "true"
+    zero-scaling/deploymentName: "echo1"
 spec:
   rules:
   - host: echo1.test.vscodecloud.com

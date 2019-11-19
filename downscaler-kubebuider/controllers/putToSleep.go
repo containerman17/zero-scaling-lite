@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 
+	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
@@ -101,5 +103,26 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 
 	log.Info("putToSleep complete", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
 
-	// TODO scale deployment to zero
+	//  scale deployment to zero
+
+	namespacedDeploymentName := client.ObjectKey{
+		Namespace: ingressNamespace,
+		Name:      ingress.ObjectMeta.Annotations["zero-scaling/deploymentName"],
+	}
+	deployment := &appsv1.Deployment{}
+
+	if err := r.Get(ctx, namespacedDeploymentName, deployment); err != nil {
+		log.Error(err, "unable to get Deployment "+namespacedDeploymentName.String()+" in putToSleep")
+		return
+	}
+
+	zero := int32(0)
+	deployment.Spec.Replicas = &zero
+
+	err = r.Update(ctx, deployment)
+
+	if err != nil {
+		log.Error(err, "unable to update deployment in putToSleep")
+		return
+	}
 }

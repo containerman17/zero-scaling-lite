@@ -79,7 +79,7 @@ func (r *ScalingBackInfoReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		delete(ingressesCollection, ingress.Name)
 	}
 
-	log.V(1).Info("List", "ingressesCollection", ingressesCollection)
+	log.V(1).Info("List", "ingressesCollection", len(ingressesCollection))
 
 	return ctrl.Result{}, nil
 }

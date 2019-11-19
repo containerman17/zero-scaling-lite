@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 
+	appsv1 "k8s.io/api/apps/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -55,5 +56,26 @@ func wakeUp(ingressName string, ingressNamespace string, r *ScalingBackInfoRecon
 
 	log.Info("wakeUp complete", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
 
-	// TODO scale deployment back
+	//  scale deployment back to 1
+
+	namespacedDeploymentName := client.ObjectKey{
+		Namespace: ingressNamespace,
+		Name:      ingress.ObjectMeta.Annotations["zero-scaling/deploymentName"],
+	}
+	deployment := &appsv1.Deployment{}
+
+	if err := r.Get(ctx, namespacedDeploymentName, deployment); err != nil {
+		log.Error(err, "unable to get Deployment "+namespacedDeploymentName.String()+" in putToSleep")
+		return
+	}
+
+	one := int32(1)
+	deployment.Spec.Replicas = &one
+
+	err = r.Update(ctx, deployment)
+
+	if err != nil {
+		log.Error(err, "unable to update deployment in putToSleep")
+		return
+	}
 }
