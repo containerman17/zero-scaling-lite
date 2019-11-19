@@ -31,7 +31,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 		return
 	}
 
-	// TODO create proxy service
+	//  create proxy service
 
 	namespacedProxyServiceName := client.ObjectKey{
 		Namespace: ingressNamespace,
@@ -41,7 +41,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 
 	if err := r.Get(ctx, namespacedProxyServiceName, proxyService); err != nil {
 		if err.Error() == "Service \"zero-scaling-proxy\" not found" {
-			//TODO create service
+			// create service
 
 			proxyService = &apiv1.Service{
 				ObjectMeta: metav1.ObjectMeta{
@@ -69,7 +69,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 
 	}
 
-	// TODO update ingress with proxy service and back up original service data
+	//  update ingress with proxy service and back up original service data
 	portsBackup, err := ingress.Spec.Marshal()
 	if err != nil {
 		log.Error(err, "unable to marshal spec")
@@ -92,8 +92,6 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 
 	ingress.ObjectMeta.Annotations["zero-scaling/backup"] = base64.StdEncoding.EncodeToString(portsBackup)
 
-	//TODO make sure zero-scaling/is-sleeping are not called
-
 	err = r.Update(ctx, ingress)
 
 	if err != nil {
@@ -104,9 +102,4 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	log.Info("putToSleep complete", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
 
 	// TODO scale deployment to zero
-}
-
-type ServicePort struct {
-	ServiceName string `json:"serviceName"`
-	ServicePort int    `json:"servicePort"`
 }
