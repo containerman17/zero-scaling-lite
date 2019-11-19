@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"context"
+	"encoding/base64"
 
 	apiv1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -57,7 +59,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 				},
 			}
 
-			r.Create(ctx, proxyService)
+			err = r.Create(ctx, proxyService)
 		}
 
 		if err != nil {
@@ -68,16 +70,43 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	}
 
 	// TODO update ingress with proxy service and back up original service data
+	portsBackup, err := ingress.Spec.Marshal()
+	if err != nil {
+		log.Error(err, "unable to marshal spec")
+		return
+	}
 
-	for index1, _ := range ingress.Spec.Rules {
-		for index2, _ := range ingress.Spec.Rules[index1].HTTP.Paths {
-			ingress.Spec.Rules[index1].HTTP.Paths[index2].Backend.ServiceName = "zero-scaling-proxy"
-			ingress.Spec.Rules[index1].HTTP.Paths[index2].Backend.ServicePort = apiv1.ServicePort{
-				Port: 80,
-			}
+	for ruleIndex := range ingress.Spec.Rules {
 
+		for pathIndex := range ingress.Spec.Rules[ruleIndex].HTTP.Paths {
+			// //backup
+			// portsBackup[strconv.Itoa(ruleIndex)+"_"+strconv.Itoa(pathIndex)] = ServicePort{
+			// 	ServiceName: ingress.Spec.Rules[ruleIndex].HTTP.Paths[pathIndex].Backend.ServiceName,
+			// 	ServicePort: ingress.Spec.Rules[ruleIndex].HTTP.Paths[pathIndex].Backend.ServicePort.IntValue(),
+			// }
+			//set proxy service
+			ingress.Spec.Rules[ruleIndex].HTTP.Paths[pathIndex].Backend.ServiceName = "zero-scaling-proxy"
+			ingress.Spec.Rules[ruleIndex].HTTP.Paths[pathIndex].Backend.ServicePort = intstr.FromInt(80)
 		}
 	}
 
+	ingress.ObjectMeta.Annotations["zero-scaling/backup"] = base64.StdEncoding.EncodeToString(portsBackup)
+
+	//TODO make sure zero-scaling/is-sleeping are not called
+
+	err = r.Update(ctx, ingress)
+
+	if err != nil {
+		log.Error(err, "unable to update ingress in putToSleep")
+		return
+	}
+
+	log.Info("putToSleep complete", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
+
 	// TODO scale deployment to zero
+}
+
+type ServicePort struct {
+	ServiceName string `json:"serviceName"`
+	ServicePort int    `json:"servicePort"`
 }

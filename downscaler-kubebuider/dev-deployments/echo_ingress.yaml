@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: echo-ingress-1
   annotations:  
-    zero-scaling/enabled: "false"
+    zero-scaling/enabled: "true"
 spec:
   rules:
   - host: echo1.test.vscodecloud.com
