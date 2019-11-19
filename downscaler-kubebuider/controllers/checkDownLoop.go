@@ -34,11 +34,6 @@ func checkDownLoop(r *ScalingBackInfoReconciler) {
 	}
 }
 
-func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoReconciler) {
-	log := r.Log
-	log.V(1).Info("putToSleep", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
-}
-
 func getIngressMap(timing string, r *ScalingBackInfoReconciler) (map[string]bool, error) {
 	log := r.Log
 	// log.V(1).Info("Get ingress data started")
