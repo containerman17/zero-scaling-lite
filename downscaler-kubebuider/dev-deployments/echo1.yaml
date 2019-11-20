@@ -5,7 +5,7 @@ metadata:
 spec:
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     app: echo1
 ---
@@ -17,7 +17,7 @@ spec:
   selector:
     matchLabels:
       app: echo1
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -25,6 +25,7 @@ spec:
     spec:
       containers:
       - name: echo1
-        image: tutum/hello-world
+        image: codercom/code-server:v2
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+        command: ["dumb-init", "code-server", "--host", "0.0.0.0", "--auth","none" ]

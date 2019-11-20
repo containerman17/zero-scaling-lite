@@ -33,6 +33,8 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 		return
 	}
 
+	// log.Info("debug ingress", "ingress", ingress.ObjectMeta.)
+
 	//  create proxy service
 
 	namespacedProxyServiceName := client.ObjectKey{

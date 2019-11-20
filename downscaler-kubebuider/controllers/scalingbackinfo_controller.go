@@ -86,7 +86,7 @@ func (r *ScalingBackInfoReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 
 func startCheckDownLoop(r *ScalingBackInfoReconciler) {
 
-	timerCh := time.Tick(5000 * time.Millisecond)
+	timerCh := time.Tick(3 * 1000 * time.Millisecond)
 
 	for range timerCh {
 		checkDownLoop(r)
@@ -95,6 +95,7 @@ func startCheckDownLoop(r *ScalingBackInfoReconciler) {
 
 func (r *ScalingBackInfoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	go startCheckDownLoop(r)
+	go startProxy(r)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&extensionsv1beta1.Ingress{}).
 		Complete(r)

@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/base64"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
@@ -29,35 +30,39 @@ func wakeUp(ingressName string, ingressNamespace string, r *ScalingBackInfoRecon
 		return
 	}
 
-	// TODO restore ingress
-	specBackup, err := base64.StdEncoding.DecodeString(ingress.ObjectMeta.Annotations["zero-scaling/backup"])
-	if err != nil {
-		log.Error(err, "unable to decode backup in wakeUp")
-		return
+	//  restore ingress
+	proxyWorkingOnIngress := (ingress.Spec.Rules[0].HTTP.Paths[0].Backend.ServiceName == "zero-scaling-proxy")
+
+	if proxyWorkingOnIngress {
+		specBackup, err := base64.StdEncoding.DecodeString(ingress.ObjectMeta.Annotations["zero-scaling/backup"])
+		if err != nil {
+			log.Error(err, "unable to decode backup in wakeUp")
+			return
+		}
+
+		ingress.Spec.Rules = []extensionsv1beta1.IngressRule{}
+		err = ingress.Spec.Unmarshal(specBackup)
+		log.Info("Restored rules", "rules", ingress.Spec.Rules, "specBackup", specBackup)
+
+		if err != nil {
+			log.Error(err, "unable to Unmarshal backup in wakeUp")
+			return
+		}
+
+		delete(ingress.ObjectMeta.Annotations, "zero-scaling/backup")
+		ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"] = time.Now().Format(time.RFC3339)
+
+		err = r.Update(ctx, ingress)
+
+		if err != nil {
+			log.Error(err, "unable to update ingress in wakeUp")
+			return
+		}
+
+		log.Info("wakeUp complete", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
 	}
-
-	ingress.Spec.Rules = []extensionsv1beta1.IngressRule{}
-	err = ingress.Spec.Unmarshal(specBackup)
-	log.Info("Restored rules", "rules", ingress.Spec.Rules, "specBackup", specBackup)
-
-	if err != nil {
-		log.Error(err, "unable to Unmarshal backup in wakeUp")
-		return
-	}
-
-	delete(ingress.ObjectMeta.Annotations, "zero-scaling/backup")
-
-	err = r.Update(ctx, ingress)
-
-	if err != nil {
-		log.Error(err, "unable to update ingress in wakeUp")
-		return
-	}
-
-	log.Info("wakeUp complete", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
 
 	//  scale deployment back to 1
-
 	namespacedDeploymentName := client.ObjectKey{
 		Namespace: ingressNamespace,
 		Name:      ingress.ObjectMeta.Annotations["zero-scaling/deploymentName"],
@@ -69,13 +74,19 @@ func wakeUp(ingressName string, ingressNamespace string, r *ScalingBackInfoRecon
 		return
 	}
 
-	one := int32(1)
-	deployment.Spec.Replicas = &one
+	zero := int32(0)
+	deploymentHasZeroScaling := *deployment.Spec.Replicas == zero
 
-	err = r.Update(ctx, deployment)
+	if deploymentHasZeroScaling {
+		one := int32(1)
+		deployment.Spec.Replicas = &one
 
-	if err != nil {
-		log.Error(err, "unable to update deployment in putToSleep")
-		return
+		err := r.Update(ctx, deployment)
+
+		if err != nil {
+			log.Error(err, "unable to update deployment in putToSleep")
+			return
+		}
 	}
+
 }
