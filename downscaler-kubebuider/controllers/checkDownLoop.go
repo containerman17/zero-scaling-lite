@@ -23,17 +23,6 @@ func checkDownLoop(r *ScalingBackInfoReconciler) {
 
 		proxyWorkingOnIngress := (ingress.Spec.Rules[0].HTTP.Paths[0].Backend.ServiceName == "zero-scaling-proxy")
 
-		//check it is not updated recently
-		lastWakeup, err := time.Parse(time.RFC3339, ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"])
-		if err != nil {
-			log.Error(err, "Got parsing last wakeup error on"+namespacedName+" time = "+ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"])
-		} else {
-			secondsPassed := int(time.Since(lastWakeup).Seconds())
-			if secondsPassed < 120 {
-				log.Info("Skip - no enough time since last wakeup", "namespacedName", namespacedName)
-			}
-		}
-
 		mapValue, keyExists := ingressMap[namespacedName]
 		hasTraffic := mapValue && keyExists
 		log.V(1).Info("Got ingress data", "hasTraffic", hasTraffic, "namespacedName", namespacedName)
@@ -43,6 +32,18 @@ func checkDownLoop(r *ScalingBackInfoReconciler) {
 		}
 
 		if !proxyWorkingOnIngress && !hasTraffic {
+
+			//check it is not updated recently
+			lastWakeup, err := time.Parse(time.RFC3339, ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"])
+			if err != nil {
+				log.Error(err, "Got parsing last wakeup error on"+namespacedName+" time = "+ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"])
+			} else {
+				secondsPassed := int(time.Since(lastWakeup).Seconds())
+				if secondsPassed < 120 {
+					log.Info("Skip - no enough time since last wakeup", "namespacedName", namespacedName)
+				}
+			}
+
 			putToSleep(ingress.Name, ingress.Namespace, r)
 		}
 	}
