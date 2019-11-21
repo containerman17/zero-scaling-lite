@@ -25,14 +25,13 @@ func checkDownLoop(r *ScalingBackInfoReconciler) {
 
 		mapValue, keyExists := ingressMap[namespacedName]
 		hasTraffic := mapValue && keyExists
-		log.V(1).Info("Got ingress data", "hasTraffic", hasTraffic, "namespacedName", namespacedName)
+		// log.V(1).Info("Got ingress data", "hasTraffic", hasTraffic, "namespacedName", namespacedName)
 
 		if proxyWorkingOnIngress && hasTraffic {
 			wakeUp(ingress.Name, ingress.Namespace, r)
 		}
 
 		if !proxyWorkingOnIngress && !hasTraffic {
-
 			//check it is not updated recently
 			lastWakeup, err := time.Parse(time.RFC3339, ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"])
 			if err != nil {
@@ -41,6 +40,7 @@ func checkDownLoop(r *ScalingBackInfoReconciler) {
 				secondsPassed := int(time.Since(lastWakeup).Seconds())
 				if secondsPassed < 120 {
 					log.Info("Skip - no enough time since last wakeup", "namespacedName", namespacedName)
+					continue
 				}
 			}
 

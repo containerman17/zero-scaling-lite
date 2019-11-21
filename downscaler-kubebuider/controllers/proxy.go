@@ -9,12 +9,6 @@ import (
 
 var wakeUpLocks = make(map[string]string)
 
-type CustomRequestData struct {
-	IngressName string
-	ServiceName string
-	Namespace   string
-}
-
 func startProxy(r *ScalingBackInfoReconciler) {
 	log := r.Log
 
@@ -26,11 +20,25 @@ func startProxy(r *ScalingBackInfoReconciler) {
 			Namespace:   "default",
 		}
 
-		// req.Header.Add("X-Forwarded-Host", req.Host)
+		req.Header.Add("X-Forwarded-Host", req.Host)
 		// req.Header.Add("X-Origin-Host", origin.Host)
-		wakeUp(customRequestData.IngressName, customRequestData.Namespace, r)
+		log.Info("Request", "host", req.Host)
 
+		for {
+			if wakeUpLocks[req.Host] != "locked" {
+				break
+			}
+			time.Sleep(1 * time.Second)
+		}
+
+		//lock to prevent multiple requests
+		wakeUpLocks[req.Host] = "locked"
+
+		wakeUp(customRequestData.IngressName, customRequestData.Namespace, r)
 		waitForWakeUp(customRequestData.ServiceName, customRequestData.Namespace)
+
+		//unlock
+		delete(wakeUpLocks, req.Host)
 
 		req.URL.Scheme = "http"
 		req.URL.Host = customRequestData.ServiceName + "." + customRequestData.Namespace + ".svc.cluster.local"
