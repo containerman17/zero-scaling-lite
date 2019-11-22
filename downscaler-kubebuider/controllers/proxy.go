@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 )
 
@@ -13,12 +14,13 @@ func startProxy(r *ScalingBackInfoReconciler) {
 	log := r.Log
 
 	director := func(req *http.Request) {
-
-		customRequestData := CustomRequestData{
-			IngressName: "echo-ingress-1",
-			ServiceName: "echo1",
-			Namespace:   "default",
-		}
+		customRequestData := getIngressByDomain(strings.Split(req.Host, ":")[0])
+		log.Info("Got request data", "CustomRequestData", customRequestData)
+		// CustomRequestData{
+		// 	IngressName: "echo-ingress-1",
+		// 	ServiceName: "echo1",
+		// 	Namespace:   "default",
+		// }
 
 		req.Header.Add("X-Forwarded-Host", req.Host)
 		// req.Header.Add("X-Origin-Host", origin.Host)

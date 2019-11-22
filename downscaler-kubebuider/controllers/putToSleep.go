@@ -20,7 +20,6 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	ctx := context.Background()
 
 	// get ingress
-	// TODO check that iongress is updated not less than a minute ago
 
 	namespacedIngressName := client.ObjectKey{
 		Namespace: ingressNamespace,

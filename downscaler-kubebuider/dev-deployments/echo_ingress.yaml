@@ -35,3 +35,9 @@ spec:
       - backend:
           serviceName: echo3
           servicePort: 80
+  - host: localhost
+    http:
+      paths:
+      - backend:
+          serviceName: echo3
+          servicePort: 80

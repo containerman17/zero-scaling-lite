@@ -17,7 +17,6 @@ func wakeUp(ingressName string, ingressNamespace string, r *ScalingBackInfoRecon
 	ctx := context.Background()
 
 	// get ingress
-	// TODO check that iongress is updated not less than a minute ago
 
 	namespacedIngressName := client.ObjectKey{
 		Namespace: ingressNamespace,
@@ -49,7 +48,7 @@ func wakeUp(ingressName string, ingressNamespace string, r *ScalingBackInfoRecon
 			return
 		}
 
-		delete(ingress.ObjectMeta.Annotations, "zero-scaling/backup")
+		// delete(ingress.ObjectMeta.Annotations, "zero-scaling/backup")
 		ingress.ObjectMeta.Annotations["zero-scaling/last-wakeup"] = time.Now().Format(time.RFC3339)
 
 		err = r.Update(ctx, ingress)

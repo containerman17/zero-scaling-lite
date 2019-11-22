@@ -21,6 +21,7 @@ func getIngressByDomain(domain string) *CustomRequestData {
 			}
 
 			restoredIngress := restoreIngress(*ingress)
+			log.Debug("restored ingress", "restoredIngress", restoredIngress)
 
 			return &CustomRequestData{
 				IngressName: ingress.Name,
@@ -44,7 +45,7 @@ func restoreIngress(original extensionsv1beta1.Ingress) *extensionsv1beta1.Ingre
 
 	ingress.Spec.Rules = []extensionsv1beta1.IngressRule{}
 	err = ingress.Spec.Unmarshal(specBackup)
-	log.Info("Restored rules", "rules", ingress.Spec.Rules, "specBackup", specBackup)
+	log.Info("Restored rules", "ingress.Spec.Rules", ingress.Spec.Rules, "original.Spec.Rules", original.Spec.Rules)
 	if err != nil {
 		log.Error(err, "unable to restore backup in getIngressByDomain")
 		return nil
