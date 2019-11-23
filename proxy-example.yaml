@@ -9,4 +9,4 @@ spec:
     # type "kubectl get svc --all-namespaces | grep prometheus" to fund out
     externalName: prometheus-server.ingress-nginx.svc.cluster.local  #this is just an example
     ports:
-    - port: 80
+    - port: 9090

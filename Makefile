@@ -84,6 +84,9 @@ logs:
 get-pods:
 	kubectl -n downscaler-kubebuider-system get pods
 
+pods-yaml:
+	kubectl -n downscaler-kubebuider-system get pods -o yaml
+
 get-svc:
 	kubectl -n downscaler-kubebuider-system get svc
 
