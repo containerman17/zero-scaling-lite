@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= quay.io/solohin_i/zero-scaling-lite:master
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -50,13 +50,15 @@ vet:
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths="./..."
 
-# Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
+# # Build the docker image
+# docker-build: test
+# 	docker build . -t ${IMG}
 
-# Push the docker image
-docker-push:
-	docker push ${IMG}
+# # Push the docker image
+# docker-push:
+# 	docker push ${IMG}
+
+# release: docker-build docker-push deploy
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -74,3 +76,17 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+
+logs:
+	kubectl -n downscaler-kubebuider-system logs -l app=zero-scaling-lite -c manager
+
+get-pods:
+	kubectl -n downscaler-kubebuider-system get pods
+
+get-svc:
+	kubectl -n downscaler-kubebuider-system get svc
+
+reset-deploy:
+	kubectl -n downscaler-kubebuider-system delete deployments --all
+	make deploy

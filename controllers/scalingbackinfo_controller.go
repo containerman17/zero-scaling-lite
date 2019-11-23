@@ -41,7 +41,9 @@ var (
 
 // +kubebuilder:rbac:groups=zero-scaling.controllers.dockerize.io,resources=scalebackinfoes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=zero-scaling.controllers.dockerize.io,resources=scalebackinfoes/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=extensions;networking.k8s.io,resources=ingresses,verbs=get;list;watch
+// +kubebuilder:rbac:groups=extensions;networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
 func (r *ScalingBackInfoReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()

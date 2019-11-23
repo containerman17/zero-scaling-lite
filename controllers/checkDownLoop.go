@@ -59,7 +59,7 @@ func getIngressMap(timing string, r *ScalingBackInfoReconciler) (map[string]bool
 	// log.V(1).Info("Get ingress data started")
 
 	query := fmt.Sprintf("sum by (ingress, namespace) ( rate(nginx_ingress_controller_bytes_sent_sum[%s]) )", timing)
-	prometheusURL := "http://prometheus.test.vscodecloud.com/api/v1/query?query=" + url.QueryEscape(query)
+	prometheusURL := "http://prometheus-proxy.downscaler-kubebuider-system.svc.cluster.local/api/v1/query?query=" + url.QueryEscape(query)
 
 	var response Response
 	err := getJson(prometheusURL, &response)

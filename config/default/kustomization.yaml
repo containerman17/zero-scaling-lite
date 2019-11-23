@@ -9,8 +9,8 @@ namespace: downscaler-kubebuider-system
 namePrefix: downscaler-kubebuider-
 
 # Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
+commonLabels:
+ app: zero-scaling-lite
 
 bases:
 - ../crd

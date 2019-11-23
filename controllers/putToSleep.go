@@ -53,7 +53,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 				},
 				Spec: apiv1.ServiceSpec{
 					Type:         "ExternalName",
-					ExternalName: "google.com",
+					ExternalName: "downscaler-kubebuider-controller-manager-metrics-service.downscaler-kubebuider-system.svc.cluster.local",
 					Ports: []apiv1.ServicePort{
 						{
 							Port: 80,
