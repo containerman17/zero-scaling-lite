@@ -10,5 +10,8 @@ spec:
   - name: https
     port: 8443
     targetPort: https
+  - name: http-proxy
+    port: 80
+    targetPort: 8081
   selector:
     control-plane: controller-manager

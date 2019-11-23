@@ -79,7 +79,7 @@ endif
 
 
 logs:
-	kubectl -n downscaler-kubebuider-system logs -l app=zero-scaling-lite -c manager
+	kubectl -n downscaler-kubebuider-system logs -l app=zero-scaling-lite -c manager --tail=700
 
 get-pods:
 	kubectl -n downscaler-kubebuider-system get pods
