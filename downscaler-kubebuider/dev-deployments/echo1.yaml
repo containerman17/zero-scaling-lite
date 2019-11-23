@@ -4,8 +4,8 @@ metadata:
   name: echo1
 spec:
   ports:
-  - port: 80
-    targetPort: 8080
+    - port: 80
+      targetPort: 8080
   selector:
     app: echo1
 ---
@@ -24,8 +24,28 @@ spec:
         app: echo1
     spec:
       containers:
-      - name: echo1
-        image: codercom/code-server:v2
-        ports:
-        - containerPort: 8080
-        command: ["dumb-init", "code-server", "--host", "0.0.0.0", "--auth","none" ]
+        - name: echo1
+          image: codercom/code-server:v2
+          ports:
+            - containerPort: 8080
+          command:
+            ["dumb-init", "code-server", "--host", "0.0.0.0", "--auth", "none"]
+          volumeMounts:
+            - mountPath: "/home/coder/project"
+              name: my-do-volume
+      volumes:
+        - name: my-do-volume
+          persistentVolumeClaim:
+            claimName: csi-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: csi-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: do-block-storage

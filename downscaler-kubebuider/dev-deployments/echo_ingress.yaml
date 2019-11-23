@@ -19,6 +19,12 @@ spec:
       - backend:
           serviceName: echo2
           servicePort: 80
+  - host: localhost
+    http:
+      paths:
+      - backend:
+          serviceName: echo1
+          servicePort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -30,12 +36,6 @@ metadata:
 spec:
   rules:
   - host: echo3.test.vscodecloud.com
-    http:
-      paths:
-      - backend:
-          serviceName: echo3
-          servicePort: 80
-  - host: localhost
     http:
       paths:
       - backend:

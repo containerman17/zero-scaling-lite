@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"sync"
 	"time"
 )
 
 var wakeUpLocks = make(map[string]string)
+var wakeUpLocksMutex = sync.Mutex{}
 
 func startProxy(r *ScalingBackInfoReconciler) {
 	log := r.Log
@@ -27,9 +29,12 @@ func startProxy(r *ScalingBackInfoReconciler) {
 		log.Info("Request", "host", req.Host)
 
 		for {
+			wakeUpLocksMutex.Lock()
 			if wakeUpLocks[req.Host] != "locked" {
+				wakeUpLocksMutex.Unlock()
 				break
 			}
+			wakeUpLocksMutex.Unlock()
 			time.Sleep(1 * time.Second)
 		}
 
@@ -40,7 +45,9 @@ func startProxy(r *ScalingBackInfoReconciler) {
 		waitForWakeUp(customRequestData.ServiceName, customRequestData.Namespace)
 
 		//unlock
+		wakeUpLocksMutex.Lock()
 		delete(wakeUpLocks, req.Host)
+		wakeUpLocksMutex.Unlock()
 
 		req.URL.Scheme = "http"
 		req.URL.Host = customRequestData.ServiceName + "." + customRequestData.Namespace + ".svc.cluster.local"
