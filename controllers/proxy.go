@@ -23,6 +23,7 @@ func startProxy(r *ScalingBackInfoReconciler) {
 				log.Info("Waiting for any ingresses to appear...")
 				continue
 			}
+			break
 		}
 
 		customRequestData := getIngressByDomain(strings.Split(req.Host, ":")[0])
