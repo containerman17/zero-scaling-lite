@@ -45,7 +45,10 @@ var (
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
+var lastReconcile = time.Now()
+
 func (r *ScalingBackInfoReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+	lastReconcile = time.Now()
 	ctx := context.Background()
 	log := r.Log.WithValues("Ingress", req.NamespacedName)
 

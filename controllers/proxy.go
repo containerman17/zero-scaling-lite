@@ -23,6 +23,14 @@ func startProxy(r *ScalingBackInfoReconciler) {
 				log.Info("Waiting for any ingresses to appear...")
 				continue
 			}
+			secondsPassed := int(time.Since(lastReconcile).Seconds())
+			if secondsPassed < 3 {
+				time.Sleep(1 * time.Second)
+				log.Info("Less then 3 seconds passed", "secondsPassed", secondsPassed)
+				continue
+			}
+
+			//all good
 			break
 		}
 
