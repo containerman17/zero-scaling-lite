@@ -28,6 +28,7 @@ func startProxy(r *ScalingBackInfoReconciler) {
 		// req.Header.Add("X-Origin-Host", origin.Host)
 		log.Info("Request", "host", req.Host)
 
+		log.Info("Wait for lock started", "host", req.Host)
 		for {
 			wakeUpLocksMutex.Lock()
 			if wakeUpLocks[req.Host] != "locked" {
@@ -35,8 +36,10 @@ func startProxy(r *ScalingBackInfoReconciler) {
 				break
 			}
 			wakeUpLocksMutex.Unlock()
+			log.Info("Locked...", "host", req.Host)
 			time.Sleep(1 * time.Second)
 		}
+		log.Info("Wait for lock finished", "host", req.Host)
 
 		//lock to prevent multiple requests
 		wakeUpLocks[req.Host] = "locked"

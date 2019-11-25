@@ -79,7 +79,7 @@ endif
 
 
 logs:
-	kubectl -n downscaler-kubebuider-system logs -l app=zero-scaling-lite -c manager --tail=700
+	kubectl logs -n downscaler-kubebuider-system $$(kubectl get pods -n downscaler-kubebuider-system -l app=zero-scaling-lite -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | head -n1) -f -c manager
 
 get-pods:
 	kubectl -n downscaler-kubebuider-system get pods
