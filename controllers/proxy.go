@@ -17,8 +17,12 @@ func startProxy(r *ScalingBackInfoReconciler) {
 
 	director := func(req *http.Request) {
 		//TODO wait for ingresses to load
-		for{
-			if(len(ingressesCollection) == 0)
+		for {
+			if len(ingressesCollection) == 0 {
+				time.Sleep(1 * time.Second)
+				log.Info("Waiting for any ingresses to appear...")
+				continue
+			}
 		}
 
 		customRequestData := getIngressByDomain(strings.Split(req.Host, ":")[0])
@@ -50,7 +54,7 @@ func startProxy(r *ScalingBackInfoReconciler) {
 		wakeUpLocks[req.Host] = "locked"
 
 		//unlock on function ends
-		defer func(){
+		defer func() {
 			wakeUpLocksMutex.Lock()
 			delete(wakeUpLocks, req.Host)
 			wakeUpLocksMutex.Unlock()
