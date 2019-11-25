@@ -14,7 +14,7 @@ func checkDownLoop(r *ScalingBackInfoReconciler) {
 	log.V(1).Info("List", "Ingresses on watch", len(ingressesCollection))
 	//	http://prometheus-server.ingress-nginx.svc.cluster.local:9090/api/v1/query?query=
 	//TODO make time customizable for every deployment
-	ingressMap, err := getIngressMap("1m", r)
+	ingressMap, err := getIngressMap("10m", r)
 
 	log.V(1).Info("Got ingress map", "ingressMap", ingressMap)
 
