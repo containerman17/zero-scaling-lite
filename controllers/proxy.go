@@ -16,6 +16,11 @@ func startProxy(r *ScalingBackInfoReconciler) {
 	log := r.Log
 
 	director := func(req *http.Request) {
+		//TODO wait for ingresses to load
+		for{
+			if(len(ingressesCollection) == 0)
+		}
+
 		customRequestData := getIngressByDomain(strings.Split(req.Host, ":")[0])
 		log.Info("Got request data", "CustomRequestData", customRequestData)
 		// CustomRequestData{
@@ -44,13 +49,15 @@ func startProxy(r *ScalingBackInfoReconciler) {
 		//lock to prevent multiple requests
 		wakeUpLocks[req.Host] = "locked"
 
+		//unlock on function ends
+		defer func(){
+			wakeUpLocksMutex.Lock()
+			delete(wakeUpLocks, req.Host)
+			wakeUpLocksMutex.Unlock()
+		}()
+
 		wakeUp(customRequestData.IngressName, customRequestData.Namespace, r)
 		waitForWakeUp(customRequestData.ServiceName, customRequestData.Namespace)
-
-		//unlock
-		wakeUpLocksMutex.Lock()
-		delete(wakeUpLocks, req.Host)
-		wakeUpLocksMutex.Unlock()
 
 		req.URL.Scheme = "http"
 		req.URL.Host = customRequestData.ServiceName + "." + customRequestData.Namespace + ".svc.cluster.local"
