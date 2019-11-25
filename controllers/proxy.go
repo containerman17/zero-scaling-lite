@@ -72,6 +72,9 @@ func startProxy(r *ScalingBackInfoReconciler) {
 		wakeUp(customRequestData.IngressName, customRequestData.Namespace, r)
 		waitForWakeUp(customRequestData.ServiceName, customRequestData.Namespace)
 
+		//sleep extra 3 seconds
+		time.Sleep(3 * time.Second)
+
 		req.URL.Scheme = "http"
 		req.URL.Host = customRequestData.ServiceName + "." + customRequestData.Namespace + ".svc.cluster.local"
 	}
