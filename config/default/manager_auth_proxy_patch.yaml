@@ -24,3 +24,7 @@ spec:
         - "--metrics-addr=127.0.0.1:8080"
         - "--enable-leader-election"
         imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+          name: http-proxy
+          protocol: TCP

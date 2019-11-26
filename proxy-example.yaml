@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
-metadata:
-    name: prometheus-proxy
+metadata: 
+    name: 
     namespace: downscaler-kubebuider-system
 spec:
     type: ExternalName
