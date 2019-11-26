@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
@@ -17,6 +19,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	log := r.Log
 	log.Info("putToSleep", "ingressName", ingressName, "ingressNamespace", ingressNamespace)
 
+	var err error
 	ctx := context.Background()
 
 	// get ingress
@@ -27,7 +30,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	}
 	ingress := &extensionsv1beta1.Ingress{}
 
-	if err := r.Get(ctx, namespacedIngressName, ingress); err != nil {
+	if err = r.Get(ctx, namespacedIngressName, ingress); err != nil {
 		log.Error(err, "unable to get Ingress in putToSleep")
 		return
 	}
@@ -42,7 +45,7 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	}
 	proxyService := &apiv1.Service{}
 
-	if err := r.Get(ctx, namespacedProxyServiceName, proxyService); err != nil {
+	if err = r.Get(ctx, namespacedProxyServiceName, proxyService); err != nil {
 		if err.Error() == "Service \"zero-scaling-proxy\" not found" {
 			// create service
 
@@ -73,7 +76,8 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 	}
 
 	//  update ingress with proxy service and back up original service data
-	portsBackup, err := ingress.Spec.Marshal()
+	var portsBackup []byte
+	portsBackup, err = ingress.Spec.Marshal()
 	if err != nil {
 		log.Error(err, "unable to marshal spec")
 		return
@@ -110,20 +114,34 @@ func putToSleep(ingressName string, ingressNamespace string, r *ScalingBackInfoR
 		Namespace: ingressNamespace,
 		Name:      ingress.ObjectMeta.Annotations["zero-scaling/deploymentName"],
 	}
-	deployment := &appsv1.Deployment{}
 
-	if err := r.Get(ctx, namespacedDeploymentName, deployment); err != nil {
-		log.Error(err, "unable to get Deployment "+namespacedDeploymentName.String()+" in putToSleep")
-		return
+	//deployment update retry cycle
+	for i := 0; i < 5; i++ {
+		fmt.Printf("Try to update deployment, try %d/5 \n", i)
+
+		deployment := &appsv1.Deployment{}
+
+		if err = r.Get(ctx, namespacedDeploymentName, deployment); err != nil {
+			log.Error(err, "unable to get Deployment "+namespacedDeploymentName.String()+" in putToSleep")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		zero := int32(0)
+		deployment.Spec.Replicas = &zero
+
+		err = r.Update(ctx, deployment)
+		if err != nil {
+			log.Error(err, "unable to update deployment in putToSleep")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		break
 	}
 
-	zero := int32(0)
-	deployment.Spec.Replicas = &zero
-
-	err = r.Update(ctx, deployment)
-
 	if err != nil {
-		log.Error(err, "unable to update deployment in putToSleep")
+		log.Error(err, "unable to update deployment in putToSleep after 5 retries")
 		return
 	}
 }

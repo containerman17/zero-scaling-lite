@@ -66,26 +66,33 @@ func wakeUp(ingressName string, ingressNamespace string, r *ScalingBackInfoRecon
 		Namespace: ingressNamespace,
 		Name:      ingress.ObjectMeta.Annotations["zero-scaling/deploymentName"],
 	}
-	deployment := &appsv1.Deployment{}
 
-	if err := r.Get(ctx, namespacedDeploymentName, deployment); err != nil {
-		log.Error(err, "unable to get Deployment "+namespacedDeploymentName.String()+" in putToSleep")
-		return
-	}
+	for i := 0; i < 5; i++ {
 
-	zero := int32(0)
-	deploymentHasZeroScaling := *deployment.Spec.Replicas == zero
+		deployment := &appsv1.Deployment{}
 
-	if deploymentHasZeroScaling {
-		one := int32(1)
-		deployment.Spec.Replicas = &one
-
-		err := r.Update(ctx, deployment)
-
-		if err != nil {
-			log.Error(err, "unable to update deployment in putToSleep")
-			return
+		if err := r.Get(ctx, namespacedDeploymentName, deployment); err != nil {
+			log.Error(err, "unable to get Deployment "+namespacedDeploymentName.String()+" in putToSleep")
+			time.Sleep(1 * time.Second)
+			continue
 		}
+
+		zero := int32(0)
+		deploymentHasZeroScaling := *deployment.Spec.Replicas == zero
+
+		if deploymentHasZeroScaling {
+			one := int32(1)
+			deployment.Spec.Replicas = &one
+
+			err := r.Update(ctx, deployment)
+
+			if err != nil {
+				log.Error(err, "unable to update deployment in putToSleep")
+				time.Sleep(1 * time.Second)
+				continue
+			}
+		}
+		break
 	}
 
 }

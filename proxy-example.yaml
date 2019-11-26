@@ -10,3 +10,7 @@ spec:
     externalName: prometheus-server.ingress-nginx.svc.cluster.local  #this is just an example
     ports:
     - port: 9090
+
+
+# you can use this line to install prometheus that defenetely works with nginx
+# kubectl apply --kustomize github.com/kubernetes/ingress-nginx/deploy/prometheus/
