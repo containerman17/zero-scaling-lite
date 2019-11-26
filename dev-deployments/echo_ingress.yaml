@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: echo-ingress-1
+  labels:
+    testlabel: helloworld
   annotations:  
     zero-scaling/enabled: "true"
     zero-scaling/deploymentName: "echo1"
@@ -30,6 +32,8 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: echo-ingress-3
+  labels:
+    testlabel: woohoo
   annotations:  
     zero-scaling/enabled: "true"
     zero-scaling/deploymentName: "echo3"

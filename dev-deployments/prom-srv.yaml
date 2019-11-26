@@ -1,13 +1,13 @@
-# apiVersion: extensions/v1beta1
-# kind: Ingress
-# metadata:
-#   name: prometheus-server-custom
-#   namespace: ingress-nginx
-# spec:
-#   rules:
-#   - host: prometheus.test.vscodecloud.com
-#     http:
-#       paths:
-#       - backend:
-#           serviceName: prometheus-server
-#           servicePort: 9090
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: prometheus-server-custom
+  namespace: ingress-nginx
+spec:
+  rules:
+  - host: prometheus.test.vscodecloud.com
+    http:
+      paths:
+      - backend:
+          serviceName: prometheus-server
+          servicePort: 9090
